@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <style>
+    body {
+      background-color: #1c1c1c;
+      font-family: 'Arial', sans-serif;
+      color: #f2f2f2;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      margin-top: 30px;
+      text-align: center;
+    }
+
+    .checkout-title {
+      font-size: 36px;
+      font-weight: bold;
+      color: #007bff;
+      margin-bottom: 30px;
+    }
+
+    .list-group-item {
+      border-color: #007bff;
+      background-color: #2c2c2c;
+      color: #f2f2f2;
+      font-weight: bold;
+    }
+
+    .form-control {
+      border-color: #007bff;
+      background-color: #2c2c2c;
+      color: #000000;
+    }
+
+    .form-label {
+      color: #007bff;
+      font-weight: bold;
+    }
+
+    .btn-primary {
+      background-color: #007bff;
+      border-color: #007bff;
+    }
+
+    .btn-primary:hover {
+      background-color: #0056b3;
+      border-color: #0056b3;
+    }
+
+    .form-group-col-md-2 {
+      background-color: #2c2c2c;
+    }
+
+    .form-group-col-md-2 input {
+      color: #007bff;
+    }
+  </style>
+  <title>Document</title>
+</head>
+<body>
+  <div class="container">
+    <div class="checkout-title">Checkout</div>
+    <div class="row">
+      <div class="col-md-12">
+        <ul class="list-group" id="item_list"></ul>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <form method="POST" id="orderForm">
+          {% csrf_token %}
+          <input type="hidden" id="items" name="items">
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="inputEmail4">Name</label>
+              <input id="name" name="name" type="text" class="form-control" id="inputEmail4" placeholder="john">
+            </div>
+            <div class="form-group col-md-6">
+              <label for="inputPassword4">Email</label>
+              <input id="email" name="email" type="text" class="form-control" id="inputPassword4" placeholder="John@john.com">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="inputAddress">Address</label>
+            <input id="address" name="address" type="text" class="form-control" id="inputAddress" placeholder="1234 Main St">
+          </div>
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="inputCity">City</label>
+              <input id="city" name="city" type="text" class="form-control" id="inputCity">
+            </div>
+            <div class="form-group col-md-4">
+              <label for="inputState">State</label>
+              <input id="state" name="state" type="text" class="form-control" id="inputCity">
+            </div>
+            <div class="form-group col-md-2">
+              <label for="inputZip">Zip</label>
+              <input id="zipcode" name="zipcode" type="text" class="form-control" id="inputZip">
+            </div>
+            <div class="form-group col-md-2">
+              <label for="inputZip">Amount to be paid</label>
+              <input readonly="" type="text" class="form-control" id="total" name="total">
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary" id="submitOrderButton" data-toggle="modal" data-target="#orderConfirmationModal">Sign In And Place Order</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Order Confirmation Modal -->
+<div class="modal fade" id="orderConfirmationModal" tabindex="-1" role="dialog" aria-labelledby="orderConfirmationModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content" style="background-color: #000;">
+      <div class="modal-header">
+        <h5 class="modal-title" id="orderConfirmationModalLabel">Order Confirmation</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="orderConfirmationMessage">
+        Thank you for your order! Your order with Purchase ID <span id="purchaseId"></span> has been placed successfully.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap JS and your existing script -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+<script type="text/javascript">
+  if (localStorage.getItem('cart') == null) {
+    var cart = {};
+  } else {
+    cart = JSON.parse(localStorage.getItem('cart'));
+  }
+  let total = 0;
+  for (item in cart) {
+    let name = cart[item][1];
+    let quantity = cart[item][0];
+    let price = cart[item][2];
+    total = total + cart[item][2];
+
+    itemString = ` <li class="list-group-item"><span class="">${quantity}</span> of ${name}   <span class="badge badge-warning badge-pill">${price}</span></li>`
+
+    $('#item_list').append(itemString);
+  }
+  totalPrice = ` <li class="list-group-item d-flex justify-content-between align-items-center "><b>Your Total is </b>
+    ${total}</li>`
+  $('#total').val(total);
+  $('#item_list').append(totalPrice);
+
+  // Generate a random purchase ID
+  let purchaseId = generatePurchaseId();
+  $('#purchaseId').text(purchaseId);
+
+  // Set the items and purchase ID in the form
+  $('#items').val(JSON.stringify(cart));
+
+  // Button click event
+  $('#submitOrderButton').on('click', function () {
+    // Show the order confirmation modal
+    $('#orderConfirmationModal').modal('show');
+
+    // Initialize popover inside the button click event
+    $('[data-toggle="popover"]').popover();
+  });
+
+  // When the modal is closed, submit the form
+  $('#orderConfirmationModal').on('hidden.bs.modal', function (e) {
+    $('#orderForm').submit(); // Submit the form
+  });
+
+  // Function to generate a random purchase ID
+  function generatePurchaseId() {
+    return Math.floor(Math.random() * 1000000) + 1; // Adjust the range as needed
+  }
+</script>
+
+</html>
